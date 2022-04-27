@@ -5,7 +5,7 @@ import 'package:great_places/helpers/db_helper.dart';
 import 'package:great_places/models/place.dart';
 
 class GreatPlaces extends ChangeNotifier {
-  final List<Place> _places = [];
+  late List<Place> _places = [];
 
   List<Place> get places => [..._places];
 
@@ -20,10 +20,28 @@ class GreatPlaces extends ChangeNotifier {
     _places.add(newPlace);
     notifyListeners();
 
-    DBHelper.insert('places', {
+    DBHelper.insert('user_places', {
       'id': newPlace.id,
       'title': newPlace.title,
       'image': newPlace.image.path
     });
+  }
+
+  Future<void> fetchAndSetPlaces() async {
+    final dbList = await DBHelper.getData('user_places');
+
+    _places = dbList
+        .map(
+          (place) => Place(
+            id: place['id'],
+            title: place['title'],
+            location: null,
+            image: File(
+              place['image'],
+            ),
+          ),
+        )
+        .toList();
+    notifyListeners();
   }
 }
